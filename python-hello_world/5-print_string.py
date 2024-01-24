@@ -2,4 +2,4 @@
 str = "Holberton School"
 age = "Holberton"
 print(f"{str}{str}{str}")
-print("{age}")
+print(f"{age}")
