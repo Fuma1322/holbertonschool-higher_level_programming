@@ -1,3 +1,3 @@
 #!/usr/bin/python3
-for (a, z):
+for (a, z)
 print("{}")
