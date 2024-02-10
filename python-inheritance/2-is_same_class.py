@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+# 2-is_same_class.py
+# Fuma1322
 """Defines a class-checking function."""
 
 
