@@ -1,84 +1,95 @@
 #!/usr/bin/python3
-"""
-Contains tests for Base class
-"""
 
-import unittest
+"""
+    The ``1. Base class`` module
+"""
 import json
-from models import base
-Base = base.Base
 
 
-class TestBase(unittest.TestCase):
-    """check functionality of Base class"""
-    def _too_many_args(self):
-        """testing too many args to init"""
-        with self.assertRaises(TypeError):
-            b = Base(1, 1)
+class Base:
+    """
+        Base class
+    """
+    __nb_objects = 0
 
-    def _no_id(self):
-        """Testing id as None"""
-        b = Base()
-        self.assertEqual(b.id, 1)
+    def __init__(self, id=None):
+        if id is not None:
+            self.id = id
+        else:
+            Base.__nb_objects += 1
+            self.id = Base.__nb_objects
 
-    def _id_set(self):
-        """Testing id as not None"""
-        b98 = Base(98)
-        self.assertEqual(b98.id, 98)
+    @staticmethod
+    def to_json_string(list_dictionaries):
+        """
+            Function that returns the JSON string representation
+            of list_dictionaries
+        """
+        if list_dictionaries is None or len(list_dictionaries) == 0:
+            return "[]"
+        return json.dumps(list_dictionaries)
 
-    def _no_id_after_set(self):
-        """Testing id as None after not None"""
-        b2 = Base()
-        self.assertEqual(b2.id, 2)
+    @staticmethod
+    def from_json_string(json_string):
+        """
+            Function that returns the list of the JSON string
+            representation json_string
+        """
+        if json_string is None or not json_string:
+            return []
+        return json.loads(json_string)
 
-    def _nb_private(self):
-        """Testing nb_objects as a private instance attribute"""
-        b = Base(3)
-        with self.assertRaises(AttributeError):
-            print(b.nb_objects)
-        with self.assertRaises(AttributeError):
-            print(b.__nb_objects)
+    @classmethod
+    def save_to_file(cls, list_objs):
+        """
+            Function that writes the JSON string
+            representation of list_objs to a file
+        """
+        list_dictionaries = None
+        if list_objs is not None:
+            list_dictionaries = []
+            for i in list_objs:
+                list_dictionaries.append(i.to_dictionary())
+        with open("{}.json".format(cls.__name__), "w", encoding="utf-8") as f:
+            f.write(cls.to_json_string(list_dictionaries))
+        f.close()
 
-    def _to_json_string(self):
-        """Testing regular to json string"""
-        Base._Base__nb_objects = 0
-        d1 = {"id": 9, "width": 5, "height": 6, "x": 7, "y": 8}
-        d2 = {"id": 2, "width": 2, "height": 3, "x": 4, "y": 0}
-        json_s = Base.to_json_string([d1, d2])
-        self.assertTrue(type(json_s) is str)
-        d = json.loads(json_s)
-        self.assertEqual(d, [d1, d2])
+    @classmethod
+    def create(cls, **dictionary):
+        """
+            Function that returns an instance with all
+            attributes already set
+        """
+        from models.rectangle import Rectangle
+        from models.square import Square
+        if cls is Square:
+            new_instance = Square(3)
+        if cls is Rectangle:
+            new_instance = Rectangle(3, 5)
+        try:
+            new_instance.update(**dictionary)
+        except Exception:
+            pass
+        return new_instance
 
-    def _empty_to_json_string(self):
-        """Test for passing empty list"""
-        json_s = Base.to_json_string([])
-        self.assertTrue(type(json_s) is str)
-        self.assertEqual(json_s, "[]")
-
-    def _None_to_json_String(self):
-        """testting None to a json"""
-        json_s = Base.to_json_string(None)
-        self.assertTrue(type(json_s) is str)
-        self.assertEqual(json_s, "[]")
-
-    def _from_json_string(self):
-        """Tests normal from_json_string"""
-        json_str = '[{"id": 9, "width": 5, "height": 6, "x": 7, "y": 8}, \
-{"id": 2, "width": 2, "height": 3, "x": 4, "y": 0}]'
-        json_l = Base.from_json_string(json_str)
-        self.assertTrue(type(json_l) is list)
-        self.assertEqual(len(json_l), 2)
-        self.assertTrue(type(json_l[0]) is dict)
-        self.assertTrue(type(json_l[1]) is dict)
-        self.assertEqual(json_l[0],
-                         {"id": 9, "width": 5, "height": 6, "x": 7, "y": 8})
-        self.assertEqual(json_l[1],
-                         {"id": 2, "width": 2, "height": 3, "x": 4, "y": 0})
-
-    def _frjs_empty(self):
-        """Tests from_json_string  empty string"""
-        self.assertEqual([], Base.from_json_string(""))
-
-    def _frjs_None(self):
-        """Testing from_json_string   none string"""
-        self.assertEqual([], Base.from_json_string(None))
+    @classmethod
+    def load_from_file(cls):
+        """
+            Function that returns a list of instances
+        """
+        new_list = []
+        try:
+            with open("{}.json".format(cls.__name__),
+                      "r", encoding="utf-8") as f:
+                read_data = f.read()
+                list_json = cls.from_json_string(read_data)
+                try:
+                    for dictionary in list_json:
+                        new_list.append(cls.create(**dictionary))
+                except Exception:
+                    pass
+            f.close()
+        except Exception:
+            pass
+        finally:
+            return new_list
