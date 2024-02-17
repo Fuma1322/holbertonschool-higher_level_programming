@@ -28,3 +28,8 @@ class Square(Rectangle):
             _type_: _description_
         """
         return f"[Square] ({self.id}) {self.x}/{self.y} - {self.width}"
+
+    @property
+    def size(self):
+        """Getter for width and height properties of the rectangle."""
+        return self.width
